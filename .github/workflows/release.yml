@@ -3,7 +3,7 @@ name: Auto Build and Release
 on:
   push:
     branches:
-      - main  # Adjust to your default branch name
+      - main  # Trigger workflow on push to the main branch
 
 jobs:
   release:
@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,16 +26,19 @@ jobs:
       - name: Build EXE
         run: pyinstaller --onefile tot_calculator.py
 
+      - name: Verify Dist Folder
+        run: ls -l dist
+
       - name: Determine Next Version
         id: next_version
         run: |
-          latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "Latest tag: $latest_tag"
           version=$(echo $latest_tag | sed 's/^v//' | awk -F. '{print $1 "." $2 "." $3+1}')
           echo "New version: $version"
           echo "version=v$version" >> $GITHUB_ENV
 
-      - name: Create New Tag
+      - name: Create and Push New Tag
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
