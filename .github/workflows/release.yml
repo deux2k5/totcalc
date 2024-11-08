@@ -1,5 +1,8 @@
 name: Auto Build and Release
 
+permissions:
+  contents: write  # Allow pushing tags and creating releases
+
 on:
   push:
     branches:
