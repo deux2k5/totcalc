@@ -1,0 +1,57 @@
+name: Auto Build and Release
+
+on:
+  push:
+    branches:
+      - main  # Adjust to your default branch name
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+
+      - name: Build EXE
+        run: pyinstaller --onefile tot_calculator.py
+
+      - name: Determine Next Version
+        id: next_version
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          version=$(echo $latest_tag | sed 's/^v//' | awk -F. '{print $1 "." $2 "." $3+1}')
+          echo "New version: $version"
+          echo "version=v$version" >> $GITHUB_ENV
+
+      - name: Create New Tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag ${{ env.version }}
+          git push origin ${{ env.version }}
+
+      - name: Upload EXE as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tot_calculator_exe
+          path: dist/tot_calculator.exe
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.version }}
+          name: Release ${{ env.version }}
+          assets: dist/tot_calculator.exe
