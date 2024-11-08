@@ -67,7 +67,6 @@ jobs:
           path: dist/tot_calculator.exe
 
       - name: Create GitHub Release
-        if: env.tag_exists == 'false'
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
