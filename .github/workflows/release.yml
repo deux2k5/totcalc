@@ -42,16 +42,17 @@ jobs:
           echo "version=v$version" >> $GITHUB_ENV
 
       - name: Check if Tag Exists
-        id: determine_tag
+        id: tag_check
         run: |
           if git rev-parse -q --verify "refs/tags/${{ env.version }}" > /dev/null; then
-            echo "::set-output name=tag_exists::true"
+            echo "Tag already exists."
+            echo "tag_exists=true" >> $GITHUB_ENV
           else
-            echo "::set-output name=tag_exists::false"
-          fi
+            echo "Tag does not exist."
+            echo "tag_exists=false" >> $GITHUB_ENV
 
       - name: Create and Push New Tag
-        if: steps.determine_tag.outputs.tag_exists == 'false'
+        if: env.tag_exists == 'false'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
@@ -65,6 +66,7 @@ jobs:
           path: dist/tot_calculator.exe
 
       - name: Create GitHub Release
+        if: env.tag_exists == 'false'
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
