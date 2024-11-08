@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime, timedelta
 
-class TOTCalculator:
+class TOTCalculator: #sunshine is gay
     def __init__(self, root):
         self.root = root
         self.root.title("Time on Target (TOT) Calculator")
